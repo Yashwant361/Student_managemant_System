@@ -9,6 +9,7 @@ const Subjects = () => {
 
     const [subject,setSubject]=useState("");
     const [allSubject,setAllSubject]=useState([]);
+    const [edit,setEdit]=useState(null);
     const {setIsLogin} =useUser();
     const navigate=useNavigate();
         async function getAllSub(){
@@ -61,6 +62,28 @@ const Subjects = () => {
         toast.error(error.response.data.message);
       }
     }
+    const handleEdit=(i)=>{
+      setEdit(allSubject[i]._id);
+      setSubject(allSubject[i].subject);
+    }
+    const handleUpdate=async(e)=>{
+      e.preventDefault();
+      try {
+        const token=localStorage.getItem('token');
+        const res=await axios.patch('http://localhost:3000/api/std/subject/updatesubject',{subject,editID:edit},{
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+        });
+        toast.success(res.data.message);
+        setEdit(null);
+        setSubject("");
+        getAllSub();
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
+    }
     useEffect(()=>{ 
       getAllSub();
     },[]);
@@ -72,13 +95,15 @@ const Subjects = () => {
 
       <form>
         <input type="text" value={subject} placeholder='sub name' onChange={(e)=>setSubject(e.target.value)} />
-        <input type="submit"  onClick={handleSubmit}/>
+        {
+          edit ? <input type='submit' value="update" onClick={handleUpdate}/> :<input type="submit"  onClick={handleSubmit}/>
+        }
       </form>
 
 
       <div>
-        {allSubject.map((s)=>
-          <li key={s._id}>{s.subject}  <button onClick={()=>handleRemove(s._id)}> remove</button></li>
+        {allSubject.map((s,i)=>
+          <li key={s._id}>{s.subject}  <button onClick={()=>handleRemove(s._id)}> remove</button> <button onClick={()=>handleEdit(i)}>edit</button></li>
         )}
       </div>
     </div>

@@ -47,4 +47,19 @@ const handleRemoveSubject=async(req,res)=>{
         
     }
 }
-module.exports={handleAddSubject,handleGetAllSubject,handleRemoveSubject}
+
+const handleUpdateSubject=async(req,res)=>{
+    try {
+        if(req.body == undefined){
+            return res.status(400).json({message:"details are mandatory to update a subject"});
+        }
+        const {subject,editID}=req.body;
+
+        await SUBJECT.findByIdAndUpdate({_id:editID},{$set:{subject:subject}});
+
+        return res.status(200).json({message:"subject updated successfully"})
+    } catch (error) {
+        return res.status(500).json({message:"inernal server error"})
+    }
+}
+module.exports={handleAddSubject,handleGetAllSubject,handleRemoveSubject,handleUpdateSubject}
