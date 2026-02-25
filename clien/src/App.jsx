@@ -13,7 +13,7 @@ const App = () => {
   const {isLogin} =useUser()
   const token=localStorage.getItem('token');
   return (
-    <BrowserRouter>
+      <>
           {isLogin && <Navbar/>}
         <Toaster></Toaster>
         <Routes>
@@ -26,7 +26,7 @@ const App = () => {
 
         </Routes>
         
-    </BrowserRouter>
+    </>
   )
 }
 

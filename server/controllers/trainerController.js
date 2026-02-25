@@ -1,6 +1,7 @@
 const TRAINER = require("../models/trainerModel");
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
+const STD = require("../models/stdModel");
 const handleTrainerSignup=async(req,res)=>{
     try {
             if(req.body== undefined){
@@ -74,4 +75,13 @@ const getTrainerDetails=async(req,res)=>{
     }
 }
 
-module.exports={handleTrainerSignup,handleTrainerLogin,getTrainerDetails}
+const getAllStd=async(req,res)=>{
+    try {
+        const stds=await STD.find({},{password:0});
+        return res.status(200).json(stds);
+    } catch (error) {
+        return res.status(500).json({message:"inernal server error"})
+    }
+}
+
+module.exports={handleTrainerSignup,handleTrainerLogin,getTrainerDetails,getAllStd}

@@ -6,10 +6,13 @@ import { UserWrapper } from './context/userContext.jsx'
 import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')).render(
-  <UserWrapper>
+<BrowserRouter>
+   <UserWrapper>
     
      <App />
       
   </UserWrapper>
+</BrowserRouter>
+ 
     
 )

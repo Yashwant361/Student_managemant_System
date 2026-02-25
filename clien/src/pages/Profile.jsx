@@ -9,29 +9,9 @@ const Profile = () => {
   const [name,setName]=useState("");
   const [password,setPassword]=useState("");
   const [newPassword,setNewPassword]=useState("");
-  const {userDetails,setUserDetails,setIsLogin,user} =useUser()
+  const {userDetails,setUserDetails,setIsLogin,user,getStdDetails} =useUser()
   const navigate=useNavigate();
-  const getStdDetails=async()=>{
-      const token=localStorage.getItem('token');
-      if(! token) {
-        return navigate('/login');
-      }
-      try {
-        const res=await axios.get(`http://localhost:3000/api/${user}/get`,{
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        setUserDetails(res.data.user);
-        localStorage.setItem('user',res.data.user.role);
-        setIsLogin(true);
-      } catch (error) {
-          toast.error(error.response.data.message);
-          localStorage.removeItem('token');
-          navigate('/login');
-      }
-    }
+
   useEffect(()=>{
     getStdDetails();
   },[]);

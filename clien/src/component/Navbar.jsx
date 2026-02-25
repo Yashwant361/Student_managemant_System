@@ -8,7 +8,7 @@ const Navbar = () => {
     const navigate=useNavigate();
     const {setUserDetails,setIsLogin ,userDetails} =useUser()
     const handleLogout=()=>{
-        localStorage.removeItem('token');
+        localStorage.clear();
         toast.success('logout successfully');
         setUserDetails({name:"",email:"",age:"",role:""});
         setIsLogin(false);
