@@ -1,132 +1,143 @@
-const bcrypt=require('bcrypt');
-const jwt=require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const STD = require("../models/stdModel");
 
-const handleStdSignup=async(req,res)=>{
+const handleStdSignup = async (req, res) => {
     try {
-        if(req.body== undefined){
-            return res.status(400).json({message:"detailsare mandatory to create student account"});
+        const { email, name, password, age } = req.body;
+
+        if (!email || !name || !password || !age) {
+            return res.status(400).json({ message: "all input fields are mandatory" });
         }
-        const {email,name,password,age}=req.body;
-        if(! email || !name || ! password || ! age){
-            return res.status(400).json({message:"all input fields are mandatory"});
+
+        const isStd = await STD.findOne({ email });
+
+        if (isStd) {
+            return res.status(409).json({ message: "student with this email already exist" });
         }
-        const isStd=await STD.findOne({email});
-        if(isStd){
-            return res.status(409).json({message:"student with this email alredy exist"});
-        }
-        const hashedPass=await bcrypt.hash(password , 10);
-        const isCreated= await STD.insertOne({email,name,age,password:hashedPass});
-        return res.status(201).json({message:"student account created successfully"});
+
+        const hashedPass = await bcrypt.hash(password, 10);
+
+        await STD.create({
+            email,
+            name,
+            age,
+            password: hashedPass
+        });
+
+        return res.status(201).json({ message: "student account created successfully" });
+
     } catch (error) {
-        return res.status(500).json({message:"inernal server error"})
+        console.log("Signup Error:", error); // VERY IMPORTANT
+        return res.status(500).json({ message: "internal server error" });
     }
-    
-}
-
-const handleStdLogin=async(req,res)=>{
+};
+const handleStdLogin = async (req, res) => {
     try {
-        if(req.body== undefined){
-            return res.status(400).json({message:"detailsare mandatory to login into student account"});
+        if (req.body == undefined) {
+            return res.status(400).json({ message: "detailsare mandatory to login into student account" });
         }
-        const {email,password}=req.body;
-        if(! email || ! password){
-            return res.status(400).json({message:"all input fields are mandatory"});
-        }
-
-        const isStd=await STD.findOne({email});
-
-        if(! isStd){
-            return res.status(400).json({message:"invalid email"});
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "all input fields are mandatory" });
         }
 
-        const isMatched=await bcrypt.compare(password , isStd.password);
+        const isStd = await STD.findOne({ email });
 
-        if(! isMatched){
-            return res.status(400).json({message:"invalid password"});
+        if (!isStd) {
+            return res.status(400).json({ message: "invalid email" });
         }
 
-        const token=jwt.sign({email,_id:isStd._id ,role : isStd.role},'JSP',{expiresIn:'1h'});
+        const isMatched = await bcrypt.compare(password, isStd.password);
 
-        return res.status(200).json({message:"login successfull" , token});
+        if (!isMatched) {
+            return res.status(400).json({ message: "invalid password" });
+        }
+
+        const token = jwt.sign(
+            { email, _id: isStd._id, role: isStd.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' });
+
+        return res.status(200).json({ message: "login successfull", token });
 
     } catch (error) {
-        return res.status(500).json({message:"inernal server error"})
-    }
-}
-
-
-const getStdDetails=async(req,res)=>{
-    try {
-        const {_id}=req.payload;
-
-        const isStd=await STD.findById({_id} ,{password:0});
-        if(! isStd){
-            return res.status(401).json({message:"token not vaild because acc has been deleted"});
-        }
-
-        return res.status(200).json({user:isStd});
-    } catch (error) {
-        return res.status(500).json({message:"inernal server error"})
+        return res.status(500).json({ message: "inernal server error" })
     }
 }
 
-const handleUpdateStdName=async(req,res)=>{
+
+const getStdDetails = async (req, res) => {
     try {
-        const {_id}=req.payload;
-        if(req.body== undefined){
-            return res.status(400).json({message:"detailsare mandatory to update student name"});
+        const { _id } = req.payload;
+
+        const isStd = await STD.findById({ _id }, { password: 0 });
+        if (!isStd) {
+            return res.status(401).json({ message: "token not vaild because acc has been deleted" });
         }
-        const {name}=req.body;
-        const isStd=await STD.findById({_id});
-        if(! isStd){
-            return res.status(401).json({message:"token not vaild because acc has been deleted"});
+
+        return res.status(200).json({ user: isStd });
+    } catch (error) {
+        return res.status(500).json({ message: "inernal server error" })
+    }
+}
+
+const handleUpdateStdName = async (req, res) => {
+    try {
+        const { _id } = req.payload;
+        if (req.body == undefined) {
+            return res.status(400).json({ message: "detailsare mandatory to update student name" });
         }
-        if(! name){
-            return res.status(400).json({message:"Input field is mandatory"});
+        const { name } = req.body;
+        const isStd = await STD.findById({ _id });
+        if (!isStd) {
+            return res.status(401).json({ message: "token not vaild because acc has been deleted" });
         }
-        if( name === isStd.name){
-            return res.status(400).json({message:"new name is same as privous"});
+        if (!name) {
+            return res.status(400).json({ message: "Input field is mandatory" });
         }
-        isStd.name=name;
+        if (name === isStd.name) {
+            return res.status(400).json({ message: "new name is same as privous" });
+        }
+        isStd.name = name;
         await isStd.save();
-        return res.status(200).json({message:"name updated successfully"});
+        return res.status(200).json({ message: "name updated successfully" });
     } catch (error) {
-        return res.status(500).json({message:"inernal server error"})
+        return res.status(500).json({ message: "inernal server error" })
     }
 }
 
-const handleStdUpdatePassword=async(req,res)=>{
+const handleStdUpdatePassword = async (req, res) => {
     try {
-        const {_id}=req.payload;
-        const isStd=await STD.findById({_id});
-        if(! isStd){
-            return res.status(401).json({message:"token not vaild because acc has been deleted"});
+        const { _id } = req.payload;
+        const isStd = await STD.findById({ _id });
+        if (!isStd) {
+            return res.status(401).json({ message: "token not vaild because acc has been deleted" });
         }
-        if(req.body== undefined){
-            return res.status(400).json({message:"detailsare mandatory to update student password"});
-        }   
-        const {password,newPassword}=req.body;
-        if(! password || ! newPassword){
-            return res.status(400).json({message:"Input field is mandatory"});
+        if (req.body == undefined) {
+            return res.status(400).json({ message: "detailsare mandatory to update student password" });
         }
-        const isMatched=await bcrypt.compare(password,isStd.password);
-        if(!isMatched){
-            return res.status(401).json({message:"current password is wrong"});
+        const { password, newPassword } = req.body;
+        if (!password || !newPassword) {
+            return res.status(400).json({ message: "Input field is mandatory" });
         }
-        if(password == newPassword){
-            return res.status(400).json({message:"new password cannot be same as current  password"});
+        const isMatched = await bcrypt.compare(password, isStd.password);
+        if (!isMatched) {
+            return res.status(401).json({ message: "current password is wrong" });
+        }
+        if (password == newPassword) {
+            return res.status(400).json({ message: "new password cannot be same as current  password" });
         }
 
-        const hashedPass=await bcrypt.hash(newPassword,10);
+        const hashedPass = await bcrypt.hash(newPassword, 10);
 
-        isStd.password=hashedPass;
+        isStd.password = hashedPass;
         await isStd.save();
-        return res.status(200).json({message:"password updated successfully"});
+        return res.status(200).json({ message: "password updated successfully" });
 
     } catch (error) {
-        return res.status(500).json({message:"inernal server error"})
+        return res.status(500).json({ message: "inernal server error" })
     }
 }
-module.exports={handleStdSignup,handleStdLogin,getStdDetails,handleUpdateStdName,handleStdUpdatePassword}
+module.exports = { handleStdSignup, handleStdLogin, getStdDetails, handleUpdateStdName, handleStdUpdatePassword }
 
