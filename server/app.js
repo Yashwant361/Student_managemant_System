@@ -15,8 +15,8 @@ connectDb()
 //parsing json data
 app.use(express.json());
 
-app.get('/',(req,res)=>{
-    return res.json({message:"student_hub server at work"});
+app.get('/', (req, res) => {
+  res.send("Server is running ");
 });
 
 //api for std
