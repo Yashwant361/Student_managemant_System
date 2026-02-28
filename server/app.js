@@ -1,41 +1,32 @@
-const express = require("express");
-const cors = require("cors");
-const { configDotenv } = require("dotenv");
-const path = require("path");
+const express=require('express');
+const cors=require('cors');
+const {configDotenv}=require('dotenv');
+const connectDb = require('./dbConnection/db.js');
+const stdRouter = require('./routes/stdRouter.js');
+const stdSubRouter = require('./routes/stdSubRouter.js');
+const trainerRouter = require('./routes/trainerRouter.js');
+const otpRouter = require('./routes/otpRouter.js');
+const app=express();
 
-const connectDb = require("./dbConnection/db.js");
-const stdRouter = require("./routes/stdRouter.js");
-const stdSubRouter = require("./routes/stdSubRouter.js");
-const trainerRouter = require("./routes/trainerRouter.js");
-const otpRouter = require("./routes/otpRouter.js");
-
-configDotenv();
-
-const app = express();
-
-connectDb();
-
-// Middleware
-app.use(express.json());
 app.use(cors());
+connectDb()
+//server testing api
 
-// ================= API ROUTES =================
-app.use("/api/std", stdRouter);
-app.use("/api/std/subject", stdSubRouter);
-app.use("/api/trainer", trainerRouter);
-app.use("/api/otp", otpRouter);
+//parsing json data
+app.use(express.json());
 
-// ================= FRONTEND SERVE =================
-
-// Serve React build folder
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-// React Router handle karega
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+app.get('/',(req,res)=>{
+    return res.json({message:"student_hub server at work"});
 });
 
-// ================= SERVER START =================
+//api for std
+app.use('/api/std',stdRouter);
+
+app.use('/api/std/subject',stdSubRouter);
+
+app.use('/api/trainer',trainerRouter);
+
+app.use('/api/otp',otpRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
