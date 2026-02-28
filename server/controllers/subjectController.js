@@ -1,4 +1,4 @@
-const SUBJECT = require("../models/subjectMOdel");
+const SUBJECT = require("../models/subjectModel");
 
 
 const handleAddSubject=async(req,res)=>{
